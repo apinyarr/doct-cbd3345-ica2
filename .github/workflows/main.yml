@@ -130,6 +130,8 @@ jobs:
   #       repository-url: https://test.pypi.org/legacy/
 
   run-with-service-container:
+    needs: 
+      - github-release
     runs-on: ubuntu-latest
 
     services:
