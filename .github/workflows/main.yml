@@ -1,5 +1,5 @@
 ---
-name: "ICA2 - Group C"
+name: "ICA2 - Comprehensive Project - Group C"
 on:
   push: 
     branches:
@@ -9,53 +9,38 @@ on:
 
 jobs:
   build:
-    name: Build distribution
+    name: Build Destribution Package 📦
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/job-description-print-action
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-action
       with:
         description-msg: 'Build Python Package'
-    - name: Set up Python
+
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.x"
+
     - name: Install pypa/build
       run: >-
         python3 -m
         pip install
         build
         --user
-    - name: Build a binary wheel and a source tarball
+
+    - name: Build a Binary wheel and a source tarball
       run: python3 -m build
-    - name: Store the distribution packages
+
+    - name: Store the Distribution Packages
       uses: actions/upload-artifact@v3
       with:
         name: python-package-distributions
         path: dist/
-  
-  # publish-to-pypi:
-  #   name: >-
-  #     Publish Python 🐍 distribution 📦 to PyPI
-  #   if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     name: >-
@@ -71,21 +56,27 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/job-description-print-action
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-action
       with:
         description-msg: 'Release the Package to GitHub'
+
     - name: Download all the dists
       uses: actions/download-artifact@v3
       with:
         name: python-package-distributions
         path: dist/
+
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v1.2.3
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -94,7 +85,8 @@ jobs:
         '${{ github.ref_name }}'
         --repo '${{ github.repository }}'
         --notes ""
-    - name: Upload artifact signatures to GitHub Release
+
+    - name: Upload Artifact Signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
       # Upload to GitHub Release using the `gh` CLI.
@@ -102,32 +94,8 @@ jobs:
       # sigstore-produced signatures and certificates.
       run: >-
         gh release upload
-        '${{ github.ref_name }}' dist/**
+        '${{ github.ref_name }}-${{ github.run_number }}' dist/**
         --repo '${{ github.repository }}'
-
-  # publish-to-testpypi:
-  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
-
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/<package-name>
-
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to TestPyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
-  #     with:
-  #       repository-url: https://test.pypi.org/legacy/
 
   run-with-service-container:
     name: Run application with a service container (MongoDB)
@@ -148,10 +116,11 @@ jobs:
           - 27017:27017
     
     steps:
-      - name: Checkout Code
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - uses: ./.github/actions/job-description-print-action
+      - name: Print the Workflow Job Description
+        uses: ./.github/actions/job-description-print-action
         with:
           description-msg: 'Use MongoDB Service Container for app to access'
 
@@ -160,18 +129,13 @@ jobs:
         with:
           python-version: '3.8.x'
 
-      # - name: Install Python Requirements
-      #   run: |
-      #     pip3 install -r requirement.txt
-      #     pip3 freeze
-
       - name: Download all the dists
         uses: actions/download-artifact@v3
         with:
           name: python-package-distributions
           path: dist/
 
-      - name: Install package
+      - name: Install Packages from Artifact
         run: |
           pip3 install dist/*.whl  # Replace with your package file name
           pip3 freeze
@@ -182,7 +146,7 @@ jobs:
       - name: Upload Unit Test Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: unit-test-result
+          name: unit-test-result-${{ github.run_number }}
           path: junit/unit-test-results.xml
 
       - name: Run Coverage Test
@@ -191,15 +155,14 @@ jobs:
       - name: Upload Coverage Test Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-test-result
+          name: coverage-test-result-${{ github.run_number }}
           path: coverage.xml
 
-      - name: Run App for DB Connecting Test
+      - name: Run Application
         run: python3 app.py &
 
-      - name: Test App
+      - name: Test Application - /plot
         run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 50,\"xmax\": 100,\"ymin\": 50,\"ymax\": 100 }'"
 
-      - name: Verify new collection in MongoDB
-        # run: 'docker ps -a'
+      - name: Verify Json Data in MongoDB (Service Container)
         run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
