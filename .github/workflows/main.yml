@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/job-description-print-action
       with:
         description-msg: 'Build Python Package'
-    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
