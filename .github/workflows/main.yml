@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build distribution
-    runs-on: ubuntu-latest
+    runs-on: ica2groupc2
 
     steps:
     - uses: actions/checkout@v4
