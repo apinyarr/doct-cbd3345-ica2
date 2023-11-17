@@ -7,6 +7,7 @@ import io
 import base64
 from matplotlib.colors import PowerNorm
 from pymongo import MongoClient
+import os
 
 app = Flask(__name__)
 
