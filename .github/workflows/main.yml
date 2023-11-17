@@ -11,6 +11,7 @@ jobs:
   build:
     name: Build Destribution Package 📦
     runs-on: windows-uat-1
+    continue-on-error: ${{ matrix.allow_failure }}
 
     steps:
     - name: Checkout Source Code
