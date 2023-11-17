@@ -67,7 +67,7 @@ def home():
 def plot():
     data = request.json
     xmin, xmax, ymin, ymax = data['xmin'], data['xmax'], data['ymin'], data['ymax']
-    collection.insert_one({"xmin": xmin, "xmax": xmax, "ymin": xmax, "ymax": ymax})
+    collection.insert_one({"xmin": xmin, "xmax": xmax, "ymin": ymin, "ymax": ymax})
     image_data = plot_mandelbrot(xmin, xmax, ymin, ymax)
     return jsonify({'image_data': image_data})
 
