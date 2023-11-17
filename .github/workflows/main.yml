@@ -173,4 +173,4 @@ jobs:
 
       - name: Verify new collection in MongoDB
         # run: 'docker ps -a'
-        run: "docker exec mongodb mongosh --eval 'show dbs;'"
+        run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
