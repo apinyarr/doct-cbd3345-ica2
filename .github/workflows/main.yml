@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build Destribution Package 📦
-    runs-on: ubuntu-latest
+    runs-on: windows-uat-1
 
     steps:
     - name: Checkout Source Code
@@ -49,7 +49,7 @@ jobs:
     needs:
     # - publish-to-pypi
     - build
-    runs-on: ubuntu-latest
+    runs-on: linux-uat-1
 
     permissions:
       contents: write  # IMPORTANT: mandatory for making GitHub Releases
@@ -101,7 +101,7 @@ jobs:
     name: Run application with a service container (MongoDB)
     needs: 
       - build
-    runs-on: ubuntu-latest
+    runs-on: linux-uat-1
 
     services:
       mongodb:
