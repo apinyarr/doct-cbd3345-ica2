@@ -71,6 +71,10 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/job-description-print-action
+      with:
+        description-msg: 'Release the Package to GitHub'
     - name: Download all the dists
       uses: actions/download-artifact@v3
       with:
@@ -125,4 +129,40 @@ jobs:
   #     with:
   #       repository-url: https://test.pypi.org/legacy/
 
-  
+  run-with-service-container:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6.0.4-jammy
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/job-description-print-action
+        with:
+          description-msg: 'Use MongoDB Service Container for app to access'
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.x'
+
+      - name: Install Python Requirements
+        run: |
+          pip3 install -r requirements.txt
+          pip3 freeze
+
+      - name: Run App for DB Connecting Test
+        run: python3 app.py &
+
+      - name: Test App
+        run: curl http://127.0.0.1:8081/plot
