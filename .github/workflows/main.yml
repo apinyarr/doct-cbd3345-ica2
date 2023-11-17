@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build distribution
-    runs-on: Linux
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
     - name: Install pypa/build
       run: >-
         python3 -m
-        pip install -r requirement.txt
+        pip install
         build
         --user
     - name: Build a binary wheel and a source tarball
@@ -175,6 +175,24 @@ jobs:
         run: |
           pip3 install dist/*.whl  # Replace with your package file name
           pip3 freeze
+
+      - name: Run Unit Test
+        run: pytest test_app_json.py --doctest-modules --junitxml=junit/unit-test-results.xml
+
+      - name: Upload Unit Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-result
+          path: junit/unit-test-results.xml
+
+      - name: Run Coverage Test
+        run: pytest test_app_json.py --cov=./ --cov-report=xml
+
+      - name: Upload Coverage Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-result
+          path: coverage.xml
 
       - name: Run App for DB Connecting Test
         run: python3 app.py &

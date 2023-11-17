@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'flask == 3.0.0',
         'matplotlib == 3.7.3',
-        'pymongo == 4.5.0'
+        'pymongo == 4.5.0',
+        'pytest == 7.4.3'
     ],
 )
