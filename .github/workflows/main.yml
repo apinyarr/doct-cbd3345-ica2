@@ -160,9 +160,20 @@ jobs:
         with:
           python-version: '3.8.x'
 
-      - name: Install Python Requirements
+      # - name: Install Python Requirements
+      #   run: |
+      #     pip3 install -r requirement.txt
+      #     pip3 freeze
+
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Install package
         run: |
-          pip3 install -r requirement.txt
+          pip3 install dist/*.whl  # Replace with your package file name
           pip3 freeze
 
       - name: Run App for DB Connecting Test
