@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build distribution
-    runs-on: ica2groupc2
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
