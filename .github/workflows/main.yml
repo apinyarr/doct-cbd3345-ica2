@@ -177,7 +177,7 @@ jobs:
           pip3 freeze
 
       - name: Run Unit Test
-        run: pytest test_app_json.py --doctest-modules --junitxml=junit/unit-test-results.xml
+        run: pytest test_app.py --doctest-modules --junitxml=junit/unit-test-results.xml
 
       - name: Upload Unit Test Artifact
         uses: actions/upload-artifact@v3
@@ -186,7 +186,7 @@ jobs:
           path: junit/unit-test-results.xml
 
       - name: Run Coverage Test
-        run: pytest test_app_json.py --cov=./ --cov-report=xml
+        run: pytest test_app.py --cov=./ --cov-report=xml
 
       - name: Upload Coverage Test Artifact
         uses: actions/upload-artifact@v3
