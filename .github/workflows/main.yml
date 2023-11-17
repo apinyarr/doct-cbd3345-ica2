@@ -143,6 +143,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name mongodb
         ports:
           - 27017:27017
     
@@ -171,5 +172,5 @@ jobs:
         run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 50,\"xmax\": 100,\"ymin\": 50,\"ymax\": 100 }'"
 
       - name: Verify new collection in MongoDB
-        run: 'docker ps -a'
-        # run: "docker exec mongodb mongosh --eval 'show dbs;'"
+        # run: 'docker ps -a'
+        run: "docker exec mongodb mongosh --eval 'show dbs;'"
