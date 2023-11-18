@@ -64,10 +64,10 @@ jobs:
       with:
         python-version: "3.x"
 
-    - name: Install GH CLI
-      uses: dev-hanz-ops/install-gh-cli-action
+    - name: Install the gh cli
+      uses: ksivamuthu/actions-setup-gh-cli@<VERSION>
       with:
-        gh-cli-version: 2.14.2 # optional, see action.yml for current default
+        version: 2.24.3
 
     - name: Print the Workflow Job Description
       uses: ./.github/actions/job-description-print-action
