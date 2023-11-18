@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Print the Workflow Job Description
-      uses: ./.github/actions/job-description-print-action
+      uses: ./.github/actions/job-description-print-win-action
       with:
         description-msg: 'Build Python Package'
 

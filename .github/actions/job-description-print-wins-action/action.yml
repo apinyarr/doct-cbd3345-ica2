@@ -7,10 +7,11 @@ inputs:
     required: true
     default: 'This is workflow job'
 outputs:
-  time: # id of output
+  fix-value: # id of output
     description: 'The time we greeted you'
+    value: done
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.description-msg }}
+  using: 'composite'
+  steps:
+    - run: echo Job's Description ${{ inputs.description-msg }}
+      shell: cmd
