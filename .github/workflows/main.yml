@@ -251,17 +251,16 @@ jobs:
           docker run --name plotter -d -p 8081:8081 apinyarr/plotter:base
           docker ps
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
+      - name: Sleep for 20 seconds
+        run: sleep 20s
         shell: bash
         
-
       - name: Test Application - /plot
         run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 }'"
 
       - name: Verify Json Data in MongoDB (Service Container)
         run: |
-          "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary > integration_test.txt"
+          "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary" > integration_test.txt
           cat integration_test.txt
 
       - name: Upload Integration Test Artifact
