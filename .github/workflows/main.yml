@@ -181,7 +181,7 @@ jobs:
   build-docker-image:
     name: Build Docker Image
     needs: 
-      - build
+      - run-with-service-container
     runs-on: linux-uat-1
 
     steps:
