@@ -5,7 +5,7 @@ on:
     branches:
       - 'containerization'
     tags:
-      - 'v*'
+      - 'release-*'
 
 jobs:
   build:
@@ -46,7 +46,7 @@ jobs:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
-    if: startsWith(github.ref, 'refs/head/release*')  # only publish to PyPI on release
+    if: startsWith(github.ref, 'refs/head/release-*')  # only publish to PyPI on release
     needs:
     # - publish-to-pypi
     - build
@@ -212,13 +212,36 @@ jobs:
   run-continer-app-with-service-container:
     runs-on: linux-uat-1
     needs: build-docker-image
+
+    services:
+      mongodb:
+        image: mongo:6.0.4-jammy
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongodb
+        ports:
+          - 27017:27017
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: plotter
           path: /tmp
+
       - name: Load image
         run: |
           docker load --input /tmp/plotter.tar
           docker image ls -a  
+
+      - name: Run Application Container
+        run: docker run --name plotter -d -p 8082:8081 apinyarr/plotter:v1.0
+
+      - name: Test Application - /plot
+        run: "curl --location 'http://127.0.0.1:8082/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 }'"
+
+      - name: Verify Json Data in MongoDB (Service Container)
+        run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
