@@ -49,7 +49,7 @@ jobs:
     needs:
     # - publish-to-pypi
     - build
-    runs-on: windows-uat-1
+    runs-on: linux-uat-1
 
     permissions:
       contents: write  # IMPORTANT: mandatory for making GitHub Releases
