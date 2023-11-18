@@ -262,3 +262,6 @@ jobs:
         with:
           name: integration-test-result-${{ github.run_number }}
           path: integration_test.txt
+
+      - name: Stop Application Container
+        run: docker rm -f plotter
