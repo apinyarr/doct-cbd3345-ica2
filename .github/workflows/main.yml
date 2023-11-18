@@ -238,10 +238,18 @@ jobs:
           docker image ls -a  
 
       - name: Run Application Container
-        run: docker run --name plotter -d -p 8082:8081 apinyarr/plotter:v1.0
+        run: docker run --name plotter -d -p 8082:8081 apinyarr/plotter:base
 
       - name: Test Application - /plot
         run: "curl --location 'http://127.0.0.1:8082/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 }'"
 
       - name: Verify Json Data in MongoDB (Service Container)
-        run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
+        run: |
+          "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary > integration_test.txt"
+          cat integration_test.txt
+
+      - name: Upload Integration Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-result-${{ github.run_number }}
+          path: integration_test.txt
