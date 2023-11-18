@@ -260,7 +260,8 @@ jobs:
 
       - name: Verify Json Data in MongoDB (Service Container)
         id: result
-        run: "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary"
+        run: |
+          "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary" >> $GITHUB_OUTPUT
 
       - name: Prepare Artifact
         run: echo ${{ join(steps.result.outputs.*, '\n') }} > integration_test.txt
