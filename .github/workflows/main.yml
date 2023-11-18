@@ -264,7 +264,7 @@ jobs:
           echo '#!/bin/bash' > script.sh
           echo "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary" >> script.sh
           chmod +x script.sh
-          ./script.sh >> $GITHUB_OUTPUT
+          ./script.sh | tee integration_text.txt
 
       # - name: Prepare Artifact
       #   run: echo ${{ join(steps.result.outputs.*, '\n') }} > integration_test.txt
