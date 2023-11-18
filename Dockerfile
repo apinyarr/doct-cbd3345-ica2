@@ -9,7 +9,7 @@ COPY ["requirement.txt", "./"]
 
 RUN pip install --no-cache -r requirement.txt
 
-COPY ["static", "templates", "app.py", "./"]
+COPY static/ templates/ app.py ./
 
 EXPOSE 8081
 
