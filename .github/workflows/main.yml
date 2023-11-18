@@ -247,13 +247,16 @@ jobs:
           docker image ls -a  
 
       - name: Run Application Container
-        id: run
         run: |
           docker run --name plotter -d -p 8081:8081 apinyarr/plotter:base
           docker ps
 
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+        
+
       - name: Test Application - /plot
-        if: steps.run.outcome == 'success' 
         run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 }'"
 
       - name: Verify Json Data in MongoDB (Service Container)
