@@ -3,7 +3,7 @@ name: "ICA2 - Comprehensive Project - Group C"
 on:
   push: 
     branches:
-      - 'develop'
+      - 'containerization'
     tags:
       - 'v*'
 
@@ -46,6 +46,7 @@ jobs:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
+    if: startsWith(github.ref, 'refs/head/release*')  # only publish to PyPI on release
     needs:
     # - publish-to-pypi
     - build
@@ -176,3 +177,48 @@ jobs:
 
       - name: Verify Json Data in MongoDB (Service Container)
         run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
+
+  build-docker-image:
+    name: Build Docker Image
+    needs: 
+      - build
+    runs-on: linux-uat-1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print the Workflow Job Description
+        uses: ./.github/actions/job-description-print-action
+        with:
+          description-msg: 'Build Docker Image'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          tags: apinyarr/plotter:base
+          outputs: type=docker,dest=/tmp/plotter.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: plotter
+          path: /tmp/plotter.tar
+
+  run-continer-app-with-service-container:
+    runs-on: linux-uat-1
+    needs: build-docker-image
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: plotter
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/plotter.tar
+          docker image ls -a  
