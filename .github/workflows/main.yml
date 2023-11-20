@@ -60,6 +60,11 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-action
+      with:
+        description-msg: 'Upload Python Package to GitHub Release'
+
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
