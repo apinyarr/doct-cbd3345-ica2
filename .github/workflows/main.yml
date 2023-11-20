@@ -253,7 +253,7 @@ jobs:
 
       - name: Run Application Container
         run: |
-          docker run --name plotter -d -p 8081:8081 apinyarr/plotter:base
+          docker run --name plotter -d -e MONGODB_HOST=host.docker.internal -p 8081:8081 apinyarr/plotter:base
           docker ps
 
       - name: Sleep for 20 seconds
