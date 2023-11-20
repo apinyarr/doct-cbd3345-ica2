@@ -1,0 +1,17 @@
+# action.yml
+name: 'Print Job Description'
+description: 'Print GitHub Actions Job Description'
+inputs:
+  description-msg:  # id of input
+    description: 'description message'
+    required: true
+    default: 'This is workflow job'
+outputs:
+  fix-value: # id of output
+    description: 'The time we greeted you'
+    value: done
+runs:
+  using: 'composite'
+  steps:
+    - run: echo Job's Description ${{ inputs.description-msg }}
+      shell: cmd

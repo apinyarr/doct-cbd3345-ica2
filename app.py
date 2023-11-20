@@ -6,8 +6,19 @@ import numpy as np
 import io
 import base64
 from matplotlib.colors import PowerNorm
+from pymongo import MongoClient
+import os
 
 app = Flask(__name__)
+
+# Get MongoDB endpoint
+database_host = os.getenv("MONGODB_HOST", "localhost")
+database_port = os.getenv("MONGODB_PORT", "27017")
+
+# MongoDB Configuration
+mongo_client = MongoClient(f"mongodb://{database_host}:{database_port}/")  # MongoDB connection string
+db = mongo_client["dictionary"]  # MongoDB database name
+collection = db["wordscollection"]  # MongoDB collection name
 
 def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter):
     x = np.linspace(xmin, xmax, width)
@@ -56,6 +67,7 @@ def home():
 def plot():
     data = request.json
     xmin, xmax, ymin, ymax = data['xmin'], data['xmax'], data['ymin'], data['ymax']
+    collection.insert_one({"xmin": xmin, "xmax": xmax, "ymin": ymin, "ymax": ymax})
     image_data = plot_mandelbrot(xmin, xmax, ymin, ymax)
     return jsonify({'image_data': image_data})
 

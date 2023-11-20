@@ -1,93 +1,108 @@
 ---
-name: "ICA2 - Group C"
+name: "ICA2 - Comprehensive Project - Group C"
 on:
   push: 
     branches:
-      - 'develop'
+      - 'containerization'
     tags:
-      - 'v*'
+      - 'release-*'
 
 jobs:
   build:
-    name: Build distribution
-    runs-on: ubuntu-latest
+    name: Build Destribution Package 📦
+    runs-on: windows-uat-1
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-wins-action
+      with:
+        description-msg: 'Build Destribution Package'
+
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.x"
+
     - name: Install pypa/build
       run: >-
         python3 -m
-        pip install -r requirement.txt
+        pip install
         build
         --user
-    - name: Build a binary wheel and a source tarball
+
+    - name: Build a Binary wheel and a source tarball
       run: python3 -m build
-    - name: Store the distribution packages
+
+    - name: Store the Distribution Packages
       uses: actions/upload-artifact@v3
       with:
         name: python-package-distributions
         path: dist/
-  
-  # publish-to-pypi:
-  #   name: >-
-  #     Publish Python 🐍 distribution 📦 to PyPI
-  #   if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/release-')  # only publish to PyPI on release
     needs:
     # - publish-to-pypi
     - build
-    runs-on: ubuntu-latest
+    runs-on: linux-uat-1
 
     permissions:
       contents: write  # IMPORTANT: mandatory for making GitHub Releases
       id-token: write  # IMPORTANT: mandatory for sigstore
 
     steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-action
+      with:
+        description-msg: 'Upload Python Package to GitHub Release'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    - name: Install the gh cli
+      uses: ksivamuthu/actions-setup-gh-cli@v2
+      with:
+        version: 2.24.3
+
+    - name: Print the Workflow Job Description
+      uses: ./.github/actions/job-description-print-action
+      with:
+        description-msg: 'Release the Package to GitHub'
+
     - name: Download all the dists
       uses: actions/download-artifact@v3
       with:
         name: python-package-distributions
         path: dist/
+
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v1.2.3
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: >-
         gh release create
-        '${{ github.ref_name }}'
+        '${{ github.ref_name }}-${{ github.run_number }}'
         --repo '${{ github.repository }}'
         --notes ""
-    - name: Upload artifact signatures to GitHub Release
+
+    - name: Upload Artifact Signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
       # Upload to GitHub Release using the `gh` CLI.
@@ -95,31 +110,175 @@ jobs:
       # sigstore-produced signatures and certificates.
       run: >-
         gh release upload
-        '${{ github.ref_name }}' dist/**
+        '${{ github.ref_name }}-${{ github.run_number }}' dist/**
         --repo '${{ github.repository }}'
 
-  # publish-to-testpypi:
-  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
+  run-with-service-container:
+    name: Run application with a service container (MongoDB)
+    needs: 
+      - build
+    runs-on: linux-uat-1
 
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/<package-name>
+    services:
+      mongodb:
+        image: mongo:6.0.4-jammy
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongodb
+        ports:
+          - 27017:27017
+    
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+      - name: Print the Workflow Job Description
+        uses: ./.github/actions/job-description-print-action
+        with:
+          description-msg: 'Run application with a service container (MongoDB)'
 
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v3
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to TestPyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
-  #     with:
-  #       repository-url: https://test.pypi.org/legacy/
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10.x'
 
-  
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Install Packages from Artifact
+        run: |
+          pip3 install dist/*.whl  # Replace with your package file name
+          pip3 freeze
+
+      - name: Run Unit Test
+        run: pytest test_app.py --doctest-modules --junitxml=junit/unit-test-results.xml
+
+      - name: Upload Unit Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-result-${{ github.run_number }}
+          path: junit/unit-test-results.xml
+
+      - name: Run Coverage Test
+        run: pytest test_app.py --cov=./ --cov-report=xml
+
+      - name: Upload Coverage Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-test-result-${{ github.run_number }}
+          path: coverage.xml
+
+      - name: Run Application
+        run: python3 app.py &
+
+      - name: Test Application - /plot
+        run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 50,\"xmax\": 100,\"ymin\": 50,\"ymax\": 100 }'"
+
+      - name: Verify Json Data in MongoDB (Service Container)
+        run: "docker exec mongodb mongosh --eval 'db.wordscollection.find()' dictionary"
+
+  build-docker-image:
+    name: Build Docker Image and Share as an Artifact
+    needs: 
+      - run-with-service-container
+    runs-on: linux-uat-1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print the Workflow Job Description
+        uses: ./.github/actions/job-description-print-action
+        with:
+          description-msg: 'Build Docker Image and Share as an Artifact'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          tags: apinyarr/plotter:base
+          outputs: type=docker,dest=/tmp/plotter.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: plotter
+          path: /tmp/plotter.tar
+
+  run-continer-app-with-service-container:
+    name: Run Application Container and Integration Test with MongoDB Service Container
+    runs-on: linux-uat-1
+    needs: build-docker-image
+
+    services:
+      mongodb:
+        image: mongo:6.0.4-jammy
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongodb
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print the Workflow Job Description
+        uses: ./.github/actions/job-description-print-action
+        with:
+          description-msg: 'Run Application Container and Integration Test with MongoDB Service Container'
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: plotter
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/plotter.tar
+          docker image ls -a  
+
+      - name: Run Application Container
+        run: |
+          docker run --name plotter -d -e MONGODB_HOST=host.docker.internal -p 8081:8081 apinyarr/plotter:base
+          docker ps
+
+      - name: Sleep for 20 seconds
+        run: sleep 20s
+        shell: bash
+        
+      - name: Test Application - /plot
+        run: "curl --location 'http://127.0.0.1:8081/plot' --header 'Content-Type: application/json' --data '{ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 }'"
+
+      - name: Verify Json Data in MongoDB (Service Container)
+        # id: result
+        run: |
+          echo '#!/bin/bash' > script.sh
+          echo "docker exec mongodb mongosh --eval 'db.wordscollection.find({ \"xmin\": 150,\"xmax\": 200,\"ymin\": 150,\"ymax\": 200 })' dictionary" >> script.sh
+          chmod +x script.sh
+          ./script.sh | tee integration_test.txt
+
+      # - name: Prepare Artifact
+      #   run: echo ${{ join(steps.result.outputs.*, '\n') }} > integration_test.txt
+
+      - name: Upload Integration Test Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-result-${{ github.run_number }}
+          path: integration_test.txt
+
+      - name: Stop Application Container
+        run: docker rm -f plotter
